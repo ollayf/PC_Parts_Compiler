@@ -1,0 +1,4 @@
+============ Price Compiler Beta v0.1 ==============
+- Compiles the prices of selected items from Amazon and NewEgg
+- Stores the prices unto a xl sheet in desktop
+- Batchfile cretaed to run both
