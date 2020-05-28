@@ -10,7 +10,7 @@ date, time = session_start.split('_')
 NEWEGG_PRODUCT_LIST = [
     CPU('Ryzen 3 3300X', 3.8, 4, 8, 'AMD'), \
     CPU('Ryzen 5 3600', 3.6, 6, 12, 'AMD'), \
-    CPU('Ryzen 7 3700X', 3.6, 8, 16, 'AMD'), \
+    CPU('Ryzen 7 3700X', 3.6, 8, 16, 'AMD', '100-100000071BOX'), \
     CPU('Ryzen 7 3800X', 3.9, 8, 16, 'AMD'), \
     CPU('Ryzen 9 3900X', 3.8, 12, 24, 'AMD')
 ]
@@ -145,7 +145,7 @@ def main(parts_list):
         report = get_item_details(part) # get report from utils
         prepare_part_result(part, report) # from utils
         name, result = create_xl_df(part, NEWEGG_XL, NEWEGG_HEADERS) # from utils
-        print('Done')
+        df_dict[name] = result
     # writes in the excel
     with pd.ExcelWriter(NEWEGG_XL) as xlwriter:
         for key in tuple(df_dict.keys()):
