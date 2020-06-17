@@ -142,12 +142,17 @@ def main(parts_list):
     # iterates through the parts list
     for part in parts_list:
         assert isinstance(part, Part), 'part argument must be a Part Object'
-        report = get_item_details(part) # get report from utils
-        prepare_part_result(part, report) # from utils
-        name, result = create_xl_df(part, NEWEGG_XL, NEWEGG_HEADERS) # from utils
-        df_dict[name] = result
+        try:
+            report = get_item_details(part) # get report from utils
+            prepare_part_result(part, report) # from utils
+            name, result = create_xl_df(part, NEWEGG_XL, TEMP_NE_XL, NEWEGG_HEADERS) # from utils
+        except:
+            logger.exception('Fatal Error while scarping newegg')
+            continue
+        else:
+            df_dict[name] = result
     # writes in the excel
-    with pd.ExcelWriter(NEWEGG_XL) as xlwriter:
+    with pd.ExcelWriter(TEMP_NE_XL) as xlwriter:
         for key in tuple(df_dict.keys()):
             df_dict[key].to_excel(xlwriter, key)
             print('Done writing for: ', key)
@@ -168,6 +173,12 @@ SESSION STARTED
     logging.info('Getting info for {} from NewEgg\n'.format(list_of_parts))
     # starts the main process
     main(NEWEGG_PRODUCT_LIST)
+
+    res = commit('NewEgg')
+    if res:
+        logging.info('Committed changes to NewEgg')
+    else:
+        logging.info('Didn\'t commit changes to NewEgg')
 
     # part2 = CPU('Ryzen 9 3900X', 3.8, 12, 24, 'AMD')
     # print(get_item_details(part2))

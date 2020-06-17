@@ -41,8 +41,12 @@ def get_seller_details(seller_cont):
     '''
     # Get the sellername out
     name = seller_cont.find('h3', {'class': 'a-spacing-none olpSellerName'})
-    seller_name = name.span.a.text
-    seller_name = ' '.join(seller_name.split())
+    print('NAME :', str(name.prettify()))
+    try:
+        seller_name = name.span.a.text
+        seller_name = ' '.join(seller_name.split())
+    except AttributeError:
+        seller_name = name.img.attrs['alt']
     print('Seller Name: ', seller_name)
     # Gets the price out
     price = seller_cont.find('span', {'class': 'a-size-large a-color-price olpOfferPrice a-text-bold'}).text
@@ -124,15 +128,23 @@ def main(parts_list):
     df_dict = dict()
     # iterates through the parts list
     for part in parts_list:
-        assert isinstance(part, Part), 'part argument must be a Part Object'
-        report = get_item_details(part) # get report from utils
-        prepare_part_result(part, report) # from utils
-        name, result = create_xl_df(part, AMAZON_XL, AMAZON_HEADERS) # from utils
-        # writes the df into the dictionary
-        df_dict[name] = result
-        print('Done')
+        print('Checking Part: ', part)
+        try:
+            assert isinstance(part, Part), 'part argument must be a Part Object'
+            report = get_item_details(part) # get report from utils
+            prepare_part_result(part, report) # from utils
+            name, result = create_xl_df(part,AMAZON_XL , TEMP_AMAZON_XL, AMAZON_HEADERS) # from utils
+        except Exception as e:
+            logger.exception('Fatal Error with scraping Amazon')
+            print(type(e), e)
+            continue
+        else:
+            # writes the df into the dictionary
+            df_dict[name] = result
+            print(str(df_dict))
+            print('Done')
     # writes in the excel
-    with pd.ExcelWriter(AMAZON_XL) as xlwriter:
+    with pd.ExcelWriter(TEMP_AMAZON_XL) as xlwriter:
         for key in tuple(df_dict.keys()):
             df_dict[key].to_excel(xlwriter, key)
             print('Done writing for: ', key)
@@ -154,3 +166,9 @@ SESSION STARTED
     logging.info('Getting info for {} from Amazon\n'.format(list_of_parts))
     # start getting products info
     main(AMAZON_PRODUCT_LIST)
+
+    res = commit('Amazon')
+    if res:
+        logging.info('Committed changes to Amazon')
+    else:
+        logging.info('Didn\'t commit changes to Amazon')

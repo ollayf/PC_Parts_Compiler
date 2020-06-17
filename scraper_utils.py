@@ -10,6 +10,45 @@ import logging
 import pandas as pd
 from bs4 import BeautifulSoup as soup
 from envs import *
+import shutil
+
+def get_input(question, succ_msg, fail_msg):
+    '''
+    Gets the user input on the question asked
+    :param question:
+    :param succ_msg:
+    :param fail_msg:
+    :return:
+    '''
+    res = None
+    while res == None:
+        ans = input(question + '\n')
+        if ans.lower() == 'y':
+            res = True
+            print(succ_msg)
+        elif ans.lower() == 'n':
+            res = False
+            print(fail_msg)
+    return res
+
+
+def commit(site):
+    '''
+    Checks if the user wants to commit the changes
+    :param website:
+    :return:
+    '''
+    assert site == 'Amazon' or site == 'NewEgg', 'Invalid Site input'
+    res = get_input(f'Commit {site}? y/n', 'Successfully committed', 'Successfully ignored')
+    if res:
+        if site == 'Amazon':
+            os.remove(AMAZON_XL)
+            os.rename(TEMP_AMAZON_XL, AMAZON_XL)
+        elif site == 'NewEgg':
+            os.remove(NEWEGG_XL)
+            os.rename(TEMP_NE_XL, NEWEGG_XL)
+
+    return res
 
 def seq_match(product_name, desired_product):
     '''
@@ -82,7 +121,7 @@ def check_similarity(product_name, desired_product, value_t=0, prod_threshold=0.
         return False
 
 
-def create_xl_df(part, xl_file, headers):
+def create_xl_df(part, xl_file, temp_xl_file, headers):
     '''
     After the result has been generated for the part, write the summary into the df_dict to be written in to the excel
     :param part: part to add to df_dict
@@ -97,8 +136,12 @@ def create_xl_df(part, xl_file, headers):
         with open(xl_file, 'w+') as t:
             t.write('')
         print('Excel File created at: ', xl_file)
+
+    # creates a copy of xl file before committing
+    shutil.copy(xl_file, temp_xl_file)
+
     try:
-        df = pd.read_excel(xl_file, sheet_name=part.name, names=headers, usecols=range(1,8), skiprows=0)
+        df = pd.read_excel(temp_xl_file, sheet_name=part.name, names=headers, usecols=range(1,8), skiprows=0)
     except xlrd.biffh.XLRDError:
         print('This sheet is empty')
         write_columns = True
