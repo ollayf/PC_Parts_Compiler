@@ -140,9 +140,9 @@ def main(parts_list):
             continue
         else:
             # writes the df into the dictionary
-            df_dict[name] = result
-            print(str(df_dict))
-            print('Done')
+            if name is not None and result is not None:
+                df_dict[name] = result
+                print('Done')
     # writes in the excel
     with pd.ExcelWriter(TEMP_AMAZON_XL) as xlwriter:
         for key in tuple(df_dict.keys()):

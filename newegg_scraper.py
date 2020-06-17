@@ -150,7 +150,8 @@ def main(parts_list):
             logger.exception('Fatal Error while scarping newegg')
             continue
         else:
-            df_dict[name] = result
+            if name is not None and result is not None:
+                df_dict[name] = result
     # writes in the excel
     with pd.ExcelWriter(TEMP_NE_XL) as xlwriter:
         for key in tuple(df_dict.keys()):
